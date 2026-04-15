@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iris Analytics · Codveda Internship</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e29;
+    --border: rgba(255,255,255,0.07);
+    --accent1: #7de8c8;
+    --accent2: #f4845f;
+    --accent3: #9b8fff;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --setosa: #7de8c8;
+    --versicolor: #f4845f;
+    --virginica: #9b8fff;
+    --c0: #f4845f;
+    --c1: #7de8c8;
+    --c2: #9b8fff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; gap: 2rem;
+    padding: 0 2rem; height: 56px;
+    background: rgba(13,15,20,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--accent1);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .nav-links { display: flex; gap: 0.25rem; }
+  .nav-links button {
+    background: none; border: none; cursor: pointer;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); padding: 0.35rem 0.75rem;
+    border-radius: 4px; letter-spacing: 0.04em;
+    text-transform: uppercase; transition: all 0.2s;
+  }
+  .nav-links button:hover, .nav-links button.active {
+    color: var(--accent1); background: rgba(125,232,200,0.08);
+  }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
+  .badge {
+    font-family: 'DM Mono', monospace; font-size: 0.68rem;
+    padding: 0.2rem 0.6rem; border-radius: 100px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .badge-green { background: rgba(125,232,200,0.12); color: var(--accent1); border: 1px solid rgba(125,232,200,0.2); }
+  .badge-orange { background: rgba(244,132,95,0.12); color: var(--accent2); border: 1px solid rgba(244,132,95,0.2); }
+
+  /* LAYOUT */
+  main { padding: 88px 2rem 4rem; max-width: 1400px; margin: 0 auto; }
+  section { display: none; }
+  section.active { display: block; }
+
+  /* HERO HEADER */
+  .page-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header h1 {
+    font-family: 'Fraunces', serif; font-weight: 300;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.2; letter-spacing: -0.03em;
+    margin-bottom: 0.4rem;
+  }
+  .page-header h1 em { font-style: italic; color: var(--accent1); }
+  .page-header p { color: var(--muted); font-size: 0.9rem; max-width: 540px; }
+
+  /* STAT CARDS */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1.4rem;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: rgba(125,232,200,0.2); }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+  .stat-value { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; line-height: 1; color: var(--text); }
+  .stat-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; }
+
+  /* CHART GRID */
+  .chart-grid { display: grid; gap: 1.2rem; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-1-2 { grid-template-columns: 1fr 2fr; }
+  .grid-2-1 { grid-template-columns: 2fr 1fr; }
+  @media(max-width: 900px) { .grid-2, .grid-3, .grid-1-2, .grid-2-1 { grid-template-columns: 1fr; } }
+
+  /* CHART CARD */
+  .chart-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.4rem;
+    transition: border-color 0.2s;
+  }
+  .chart-card:hover { border-color: rgba(255,255,255,0.12); }
+  .chart-card h3 {
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .chart-card h3 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent1); }
+  .chart-card h3 .dot-orange { background: var(--accent2); }
+  .chart-card h3 .dot-purple { background: var(--accent3); }
+  .canvas-wrap { position: relative; width: 100%; }
+
+  /* SPECIES LEGEND */
+  .species-legend { display: flex; gap: 1rem; margin-top: 0.75rem; flex-wrap: wrap; }
+  .sp-pill {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    color: var(--muted); letter-spacing: 0.04em;
+  }
+  .sp-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* STATS TABLE */
+  .stats-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .stats-table th {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.08em; padding: 0.5rem 0.8rem;
+    text-align: right; border-bottom: 1px solid var(--border);
+  }
+  .stats-table th:first-child { text-align: left; }
+  .stats-table td {
+    padding: 0.55rem 0.8rem; text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .stats-table td:first-child { text-align: left; color: var(--text); }
+  .stats-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .val-hi { color: var(--accent1) !important; }
+
+  /* METRIC STRIP */
+  .metric-strip { display: flex; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .metric-pill {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 1rem;
+    font-family: 'DM Mono', monospace;
+  }
+  .metric-pill .mlabel { font-size: 0.64rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .metric-pill .mval { font-size: 1.15rem; color: var(--accent1); margin-top: 0.1rem; }
+
+  /* CORR HEATMAP */
+  .corr-grid { display: grid; gap: 3px; }
+  .corr-cell {
+    aspect-ratio: 1; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    transition: transform 0.15s;
+  }
+  .corr-cell:hover { transform: scale(1.08); z-index: 1; }
+  .corr-label {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    color: var(--muted); display: flex; align-items: center;
+    justify-content: center; text-align: center;
+    padding: 2px; line-height: 1.2;
+  }
+
+  /* FILTER */
+  .filter-row { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; align-items: center; }
+  .filter-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .filter-btn {
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; padding: 0.35rem 0.8rem;
+    border-radius: 100px; cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+  .filter-btn:hover { border-color: rgba(125,232,200,0.3); color: var(--accent1); }
+  .filter-btn.active-setosa { background: rgba(125,232,200,0.1); border-color: var(--setosa); color: var(--setosa); }
+  .filter-btn.active-versicolor { background: rgba(244,132,95,0.1); border-color: var(--versicolor); color: var(--versicolor); }
+  .filter-btn.active-virginica { background: rgba(155,143,255,0.1); border-color: var(--virginica); color: var(--virginica); }
+  .filter-btn.active-all { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  /* INSIGHTS */
+  .insight-box {
+    background: rgba(125,232,200,0.05); border: 1px solid rgba(125,232,200,0.15);
+    border-radius: 8px; padding: 0.9rem 1.1rem; margin-top: 1rem;
+    font-size: 0.82rem; color: var(--muted); line-height: 1.5;
+  }
+  .insight-box strong { color: var(--accent1); font-weight: 500; }
+
+  /* MODEL BARS */
+  .model-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.9rem; }
+  .model-name { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); width: 150px; flex-shrink: 0; }
+  .model-bar-wrap { flex: 1; background: var(--bg3); border-radius: 100px; height: 6px; overflow: hidden; }
+  .model-bar { height: 100%; border-radius: 100px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+  .model-score { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text); width: 50px; text-align: right; }
+
+  /* FEAT IMPORTANCE */
+  .feat-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.75rem; }
+  .feat-name { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); width: 110px; flex-shrink: 0; }
+  .feat-bar-wrap { flex: 1; background: var(--bg3); border-radius: 100px; height: 8px; overflow: hidden; }
+  .feat-bar { height: 100%; border-radius: 100px; background: var(--accent3); transition: width 1s cubic-bezier(.4,0,.2,1); }
+  .feat-pct { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--accent3); width: 45px; text-align: right; }
+
+  /* TOOLTIP */
+  .chart-tooltip {
+    position: fixed; pointer-events: none; z-index: 200;
+    background: rgba(19,22,30,0.96); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 0.9rem;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    color: var(--text); box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    display: none; line-height: 1.6; max-width: 200px;
+  }
+
+  /* ANIM */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .chart-card { animation: fadeUp 0.4s ease both; }
+  .chart-card:nth-child(2) { animation-delay: 0.07s; }
+  .chart-card:nth-child(3) { animation-delay: 0.14s; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="chart-tooltip" id="tooltip"></div>
+
+<nav>
+  <div class="nav-logo">iris<em style="color:var(--accent2)">.</em>analytics</div>
+  <div class="nav-links">
+    <button onclick="showSection('overview')" class="active" id="btn-overview">Overview</button>
+    <button onclick="showSection('eda')" id="btn-eda">EDA</button>
+    <button onclick="showSection('regression')" id="btn-regression">Regression</button>
+    <button onclick="showSection('clustering')" id="btn-clustering">Clustering</button>
+    <button onclick="showSection('classification')" id="btn-classification">Classification</button>
+    <button onclick="showSection('timeseries')" id="btn-timeseries">Time Series</button>
+    <button onclick="showSection('nlp')" id="btn-nlp">NLP Sentiment</button>
+  </div>
+  <div class="nav-right">
+    <span class="badge badge-green">150 samples</span>
+    <span class="badge badge-orange">Codveda Internship</span>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══════════════ OVERVIEW ══════════════ -->
+<section id="overview" class="active">
+  <div class="page-header">
+    <h1>Iris <em>Species</em> Analytics</h1>
+    <p>A full data science pipeline — cleaning, EDA, regression, clustering, and classification — built on the UCI Iris benchmark dataset.</p>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Total Samples</div><div class="stat-value">150</div><div class="stat-sub">Balanced · 3 species</div></div>
+    <div class="stat-card"><div class="stat-label">Features</div><div class="stat-value">4</div><div class="stat-sub">sepal + petal dims</div></div>
+    <div class="stat-card"><div class="stat-label">Best R²</div><div class="stat-value">0.82</div><div class="stat-sub">Sepal → Petal regression</div></div>
+    <div class="stat-card"><div class="stat-label">Model Accuracy</div><div class="stat-value">93.3%</div><div class="stat-sub">All 3 classifiers</div></div>
+    <div class="stat-card"><div class="stat-label">Top Feature</div><div class="stat-value" style="font-size:1.1rem;padding-top:.4rem">petal_width</div><div class="stat-sub">43.7% RF importance</div></div>
+  </div>
+
+  <div class="chart-grid grid-2">
+    <div class="chart-card">
+      <h3><span class="dot"></span>Species distribution</h3>
+      <div class="canvas-wrap" style="height:240px"><canvas id="c-species-donut"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot dot-orange"></span>Mean measurements per species</h3>
+      <div class="canvas-wrap" style="height:240px"><canvas id="c-species-bar"></canvas></div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.2rem" class="chart-card">
+    <h3><span class="dot dot-purple"></span>Petal space — all 150 samples</h3>
+    <div class="filter-row" style="margin-bottom:0.8rem">
+      <span class="filter-label">Filter:</span>
+      <button class="filter-btn active-all" id="fb-all" onclick="filterOverviewScatter('all')">All</button>
+      <button class="filter-btn" id="fb-setosa" onclick="filterOverviewScatter('setosa')">setosa</button>
+      <button class="filter-btn" id="fb-versicolor" onclick="filterOverviewScatter('versicolor')">versicolor</button>
+      <button class="filter-btn" id="fb-virginica" onclick="filterOverviewScatter('virginica')">virginica</button>
+    </div>
+    <div class="canvas-wrap" style="height:300px"><canvas id="c-overview-scatter"></canvas></div>
+    <div class="species-legend">
+      <div class="sp-pill"><div class="sp-dot" style="background:var(--setosa)"></div>setosa</div>
+      <div class="sp-pill"><div class="sp-dot" style="background:var(--versicolor)"></div>versicolor</div>
+      <div class="sp-pill"><div class="sp-dot" style="background:var(--virginica)"></div>virginica</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ EDA ══════════════ -->
+<section id="eda">
+  <div class="page-header">
+    <h1><em>Exploratory</em> Data Analysis</h1>
+    <p>Summary statistics, distributions, and the correlation structure of all four Iris features.</p>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:1.2rem">
+    <h3><span class="dot"></span>Summary statistics</h3>
+    <div style="overflow-x:auto">
+      <table class="stats-table" id="stats-table"></table>
+    </div>
+  </div>
+
+  <div class="chart-grid grid-2" style="margin-bottom:1.2rem">
+    <div class="chart-card">
+      <h3><span class="dot dot-orange"></span>Correlation heatmap</h3>
+      <div id="corr-heatmap" style="margin-top:0.5rem"></div>
+      <div class="insight-box" style="margin-top:1rem">
+        <strong>petal_length ↔ petal_width</strong> show r = 0.96 — the strongest linear relationship. Sepal width is nearly uncorrelated with other features.
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot dot-purple"></span>Feature distributions — select feature</h3>
+      <div class="filter-row">
+        <button class="filter-btn active-all" id="fd-sl" onclick="showDistrib('sepal_length')">sepal_l</button>
+        <button class="filter-btn" id="fd-sw" onclick="showDistrib('sepal_width')">sepal_w</button>
+        <button class="filter-btn" id="fd-pl" onclick="showDistrib('petal_length')">petal_l</button>
+        <button class="filter-btn" id="fd-pw" onclick="showDistrib('petal_width')">petal_w</button>
+      </div>
+      <div class="canvas-wrap" style="height:240px"><canvas id="c-distrib"></canvas></div>
+      <div class="species-legend">
+        <div class="sp-pill"><div class="sp-dot" style="background:var(--setosa)"></div>setosa</div>
+        <div class="sp-pill"><div class="sp-dot" style="background:var(--versicolor)"></div>versicolor</div>
+        <div class="sp-pill"><div class="sp-dot" style="background:var(--virginica)"></div>virginica</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3><span class="dot"></span>Box plots — spread &amp; outliers per species</h3>
+    <div class="canvas-wrap" style="height:280px"><canvas id="c-boxplot"></canvas></div>
+  </div>
+</section>
+
+<!-- ══════════════ REGRESSION ══════════════ -->
+<section id="regression">
+  <div class="page-header">
+    <h1>Linear <em>Regression</em></h1>
+    <p>Predicting petal length from sepal length using ordinary least squares.</p>
+  </div>
+
+  <div class="metric-strip">
+    <div class="metric-pill"><div class="mlabel">R²</div><div class="mval">0.8181</div></div>
+    <div class="metric-pill"><div class="mlabel">RMSE</div><div class="mval">0.7721</div></div>
+    <div class="metric-pill"><div class="mlabel">MSE</div><div class="mval">0.5961</div></div>
+    <div class="metric-pill"><div class="mlabel">Slope</div><div class="mval">1.834</div></div>
+    <div class="metric-pill"><div class="mlabel">Intercept</div><div class="mval">−6.927</div></div>
+  </div>
+
+  <div class="chart-grid grid-2">
+    <div class="chart-card">
+      <h3><span class="dot"></span>Fitted regression line</h3>
+      <div class="canvas-wrap" style="height:300px"><canvas id="c-reg-fit"></canvas></div>
+      <div class="insight-box">
+        Equation: <strong>petal_length = 1.834 × sepal_length − 6.927</strong><br>
+        R² = 0.82 means 82% of petal length variance is explained by sepal length alone.
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot dot-orange"></span>Residual plot</h3>
+      <div class="canvas-wrap" style="height:300px"><canvas id="c-reg-resid"></canvas></div>
+      <div class="insight-box">
+        Residuals are roughly centred around zero with no clear pattern — the linear model is a good fit. Slight fanning at higher predicted values hints at mild heteroscedasticity.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CLUSTERING ══════════════ -->
+<section id="clustering">
+  <div class="page-header">
+    <h1>K-Means <em>Clustering</em></h1>
+    <p>Unsupervised grouping of all four features. Optimal K chosen via elbow method and silhouette score.</p>
+  </div>
+
+  <div class="chart-grid grid-2" style="margin-bottom:1.2rem">
+    <div class="chart-card">
+      <h3><span class="dot"></span>Elbow method — inertia vs K</h3>
+      <div class="canvas-wrap" style="height:220px"><canvas id="c-elbow"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot dot-orange"></span>Silhouette score vs K</h3>
+      <div class="canvas-wrap" style="height:220px"><canvas id="c-sil"></canvas></div>
+      <div class="insight-box" style="margin-top:0.8rem">
+        Silhouette peaks at K=2, but K=3 matches the known species count and gives clean cluster separation in petal space.
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid grid-2">
+    <div class="chart-card">
+      <h3><span class="dot dot-purple"></span>K-Means clusters (K=3)</h3>
+      <div class="canvas-wrap" style="height:300px"><canvas id="c-cluster-km"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot"></span>True species labels</h3>
+      <div class="canvas-wrap" style="height:300px"><canvas id="c-cluster-true"></canvas></div>
+    </div>
+  </div>
+  <div class="insight-box" style="margin-top:1.2rem">
+    K-Means recovers the species boundaries <strong>almost perfectly</strong> in petal space. The small overlap between versicolor and virginica reflects genuine biological similarity that also challenges classifiers.
+  </div>
+</section>
+
+<!-- ══════════════ CLASSIFICATION ══════════════ -->
+<section id="classification">
+  <div class="page-header">
+    <h1>Multi-Model <em>Classification</em></h1>
+    <p>Logistic Regression, Decision Tree, and Random Forest trained on all four features. Evaluated on a stratified 20% test set.</p>
+  </div>
+
+  <div class="chart-grid grid-2" style="margin-bottom:1.2rem">
+    <div class="chart-card">
+      <h3><span class="dot"></span>Model accuracy &amp; F1-score comparison</h3>
+      <div style="margin-top:0.5rem" id="model-bars"></div>
+      <div class="canvas-wrap" style="height:200px;margin-top:1rem"><canvas id="c-model-compare"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot dot-purple"></span>Feature importance — Random Forest</h3>
+      <div style="margin-top:0.5rem" id="feat-bars"></div>
+      <div class="insight-box" style="margin-top:1rem">
+        <strong>Petal features dominate</strong> — petal_width (43.7%) and petal_length (43.2%) together explain ~87% of classification decisions. Sepal width contributes barely 1.5%.
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3><span class="dot dot-orange"></span>Decision surface — petal space (Random Forest)</h3>
+    <div class="canvas-wrap" style="height:340px"><canvas id="c-decision"></canvas></div>
+    <div class="species-legend" style="margin-top:0.75rem">
+      <div class="sp-pill"><div class="sp-dot" style="background:var(--setosa);opacity:0.5"></div>setosa region</div>
+      <div class="sp-pill"><div class="sp-dot" style="background:var(--versicolor);opacity:0.5"></div>versicolor region</div>
+      <div class="sp-pill"><div class="sp-dot" style="background:var(--virginica);opacity:0.5"></div>virginica region</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ TIME SERIES ══════════════ -->
+<section id="timeseries">
+  <div class="page-header">
+    <h1>Time-Series <em>Analysis</em></h1>
+    <p>Stock price decomposition into trend, seasonality, and residual components; 7-day and 30-day moving averages.</p>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Period</div><div class="stat-value">1 000</div><div class="stat-sub">Trading days</div></div>
+    <div class="stat-card"><div class="stat-label">MA Windows</div><div class="stat-value">7 &amp; 30</div><div class="stat-sub">Day moving averages</div></div>
+    <div class="stat-card"><div class="stat-label">Model</div><div class="stat-value" style="font-size:1.1rem;padding-top:.4rem">Additive</div><div class="stat-sub">Decomposition</div></div>
+    <div class="stat-card"><div class="stat-label">Decomp Period</div><div class="stat-value">4</div><div class="stat-sub">Weeks (weekly data)</div></div>
+  </div>
+  <div class="chart-card" style="margin-bottom:1.2rem">
+    <h3><span class="dot"></span>Close price with 7-day &amp; 30-day moving averages</h3>
+    <div class="canvas-wrap" style="height:300px"><canvas id="c-ts-price"></canvas></div>
+    <div class="insight-box">
+      <strong>Trend:</strong> A sustained upward drift is visible over the 1 000-day window. The 30-day MA (dashed) smooths out short-term noise and confirms the long-term bull trend; the 7-day MA captures shorter momentum cycles.
+    </div>
+  </div>
+  <div class="chart-grid grid-2" style="margin-bottom:1.2rem">
+    <div class="chart-card">
+      <h3><span class="dot dot-orange"></span>Trend component (weekly resampled)</h3>
+      <div class="canvas-wrap" style="height:220px"><canvas id="c-ts-trend"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot dot-purple"></span>Seasonal component (period = 4 weeks)</h3>
+      <div class="canvas-wrap" style="height:220px"><canvas id="c-ts-seasonal"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-grid grid-2">
+    <div class="chart-card">
+      <h3><span class="dot"></span>Residual component</h3>
+      <div class="canvas-wrap" style="height:200px"><canvas id="c-ts-resid"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot dot-orange"></span>Daily returns distribution (%)</h3>
+      <div class="canvas-wrap" style="height:200px"><canvas id="c-ts-returns"></canvas></div>
+      <div class="insight-box" style="margin-top:.8rem">
+        Returns are approximately <strong>normally distributed</strong> around a small positive mean (~0.03%), consistent with a random walk with positive drift typical of equity markets.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ NLP SENTIMENT ══════════════ -->
+<section id="nlp">
+  <div class="page-header">
+    <h1>NLP <em>Sentiment Analysis</em></h1>
+    <p>TextBlob polarity &amp; subjectivity scoring on product reviews. Tokenisation, stopword removal, word frequency, and live analyser.</p>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Total Reviews</div><div class="stat-value">732</div><div class="stat-sub">Analysed</div></div>
+    <div class="stat-card"><div class="stat-label">Positive</div><div class="stat-value" style="color:#7de8c8" id="nlp-pos-count">—</div><div class="stat-sub">polarity &gt; 0.05</div></div>
+    <div class="stat-card"><div class="stat-label">Negative</div><div class="stat-value" style="color:#f4845f" id="nlp-neg-count">—</div><div class="stat-sub">polarity &lt; −0.05</div></div>
+    <div class="stat-card"><div class="stat-label">Neutral</div><div class="stat-value" style="color:#9b8fff" id="nlp-neu-count">—</div><div class="stat-sub">|polarity| ≤ 0.05</div></div>
+  </div>
+  <div class="chart-grid grid-2" style="margin-bottom:1.2rem">
+    <div class="chart-card">
+      <h3><span class="dot"></span>Sentiment distribution (TextBlob)</h3>
+      <div class="canvas-wrap" style="height:260px"><canvas id="c-nlp-donut"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot dot-orange"></span>Top positive &amp; negative words</h3>
+      <div class="canvas-wrap" style="height:260px"><canvas id="c-nlp-words"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-grid grid-2" style="margin-bottom:1.2rem">
+    <div class="chart-card">
+      <h3><span class="dot dot-purple"></span>Polarity distribution by label</h3>
+      <div class="canvas-wrap" style="height:220px"><canvas id="c-nlp-polarity"></canvas></div>
+      <div class="insight-box" style="margin-top:.8rem">
+        Positive reviews cluster strongly right of +0.05; negative reviews cluster below −0.05. Neutral reviews sit tightly around zero — thresholds are well-calibrated.
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3><span class="dot"></span>Subjectivity by sentiment label</h3>
+      <div class="canvas-wrap" style="height:220px"><canvas id="c-nlp-subjectivity"></canvas></div>
+      <div class="insight-box" style="margin-top:.8rem">
+        Strong sentiment (positive &amp; negative) tends to be more <strong>subjective</strong>. Neutral reviews cluster near the subjectivity midpoint — fact-based language carries less sentiment signal.
+      </div>
+    </div>
+  </div>
+  <div class="chart-card">
+    <h3><span class="dot dot-orange"></span>Live sentiment analyser</h3>
+    <div style="display:flex;gap:0.8rem;align-items:flex-start;flex-wrap:wrap">
+      <textarea id="nlp-live-input" placeholder="Type any review text here and click Analyse…"
+        style="flex:1;min-width:260px;height:80px;background:var(--bg3);color:var(--text);
+               border:1px solid var(--border);border-radius:8px;padding:10px;
+               font-family:'DM Sans',sans-serif;font-size:0.88rem;resize:vertical"></textarea>
+      <button onclick="analyseText()"
+        style="padding:10px 22px;background:var(--accent1);color:#0d0f14;border:none;
+               border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;
+               font-size:0.75rem;font-weight:500;white-space:nowrap">Analyse</button>
+    </div>
+    <div id="nlp-live-result" style="margin-top:1rem;font-family:'DM Mono',monospace;font-size:0.82rem;min-height:2rem"></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════
+const D = {"n_samples":150,"n_features":4,"species_counts":{"setosa":50,"versicolor":50,"virginica":50},"species_means":{"setosa":{"sepal_length":5.006,"sepal_width":3.428,"petal_length":1.462,"petal_width":0.246},"versicolor":{"sepal_length":5.936,"sepal_width":2.77,"petal_length":4.26,"petal_width":1.326},"virginica":{"sepal_length":6.588,"sepal_width":2.974,"petal_length":5.552,"petal_width":2.026}},"summary":{"sepal_length":{"count":150.0,"mean":5.843,"std":0.828,"min":4.3,"25%":5.1,"50%":5.8,"75%":6.4,"max":7.9,"median":5.8,"skew":0.315},"sepal_width":{"count":150.0,"mean":3.057,"std":0.436,"min":2.0,"25%":2.8,"50%":3.0,"75%":3.3,"max":4.4,"median":3.0,"skew":0.319},"petal_length":{"count":150.0,"mean":3.758,"std":1.765,"min":1.0,"25%":1.6,"50%":4.35,"75%":5.1,"max":6.9,"median":4.35,"skew":-0.275},"petal_width":{"count":150.0,"mean":1.199,"std":0.762,"min":0.1,"25%":0.3,"50%":1.3,"75%":1.8,"max":2.5,"median":1.3,"skew":-0.103}},"corr":{"sepal_length":{"sepal_length":1.0,"sepal_width":-0.118,"petal_length":0.872,"petal_width":0.818},"sepal_width":{"sepal_length":-0.118,"sepal_width":1.0,"petal_length":-0.428,"petal_width":-0.366},"petal_length":{"sepal_length":0.872,"sepal_width":-0.428,"petal_length":1.0,"petal_width":0.963},"petal_width":{"sepal_length":0.818,"sepal_width":-0.366,"petal_length":0.963,"petal_width":1.0}},"scatter":[{"x":1.4,"y":0.2,"species":"setosa","sl":5.1,"sw":3.5},{"x":1.4,"y":0.2,"species":"setosa","sl":4.9,"sw":3.0},{"x":1.3,"y":0.2,"species":"setosa","sl":4.7,"sw":3.2},{"x":1.5,"y":0.2,"species":"setosa","sl":4.6,"sw":3.1},{"x":1.4,"y":0.2,"species":"setosa","sl":5.0,"sw":3.6},{"x":1.7,"y":0.4,"species":"setosa","sl":5.4,"sw":3.9},{"x":1.4,"y":0.3,"species":"setosa","sl":4.6,"sw":3.4},{"x":1.5,"y":0.2,"species":"setosa","sl":5.0,"sw":3.4},{"x":1.4,"y":0.2,"species":"setosa","sl":4.4,"sw":2.9},{"x":1.5,"y":0.1,"species":"setosa","sl":4.9,"sw":3.1},{"x":1.5,"y":0.2,"species":"setosa","sl":5.4,"sw":3.7},{"x":1.6,"y":0.2,"species":"setosa","sl":4.8,"sw":3.4},{"x":1.4,"y":0.1,"species":"setosa","sl":4.8,"sw":3.0},{"x":1.1,"y":0.1,"species":"setosa","sl":4.3,"sw":3.0},{"x":1.2,"y":0.2,"species":"setosa","sl":5.8,"sw":4.0},{"x":1.5,"y":0.4,"species":"setosa","sl":5.7,"sw":4.4},{"x":1.3,"y":0.4,"species":"setosa","sl":5.4,"sw":3.9},{"x":1.4,"y":0.3,"species":"setosa","sl":5.1,"sw":3.5},{"x":1.7,"y":0.3,"species":"setosa","sl":5.7,"sw":3.8},{"x":1.5,"y":0.3,"species":"setosa","sl":5.1,"sw":3.8},{"x":1.7,"y":0.2,"species":"setosa","sl":5.4,"sw":3.4},{"x":1.5,"y":0.4,"species":"setosa","sl":5.1,"sw":3.7},{"x":1.0,"y":0.2,"species":"setosa","sl":4.6,"sw":3.6},{"x":1.7,"y":0.5,"species":"setosa","sl":5.1,"sw":3.3},{"x":1.9,"y":0.2,"species":"setosa","sl":4.8,"sw":3.4},{"x":1.6,"y":0.2,"species":"setosa","sl":5.0,"sw":3.0},{"x":1.6,"y":0.4,"species":"setosa","sl":5.0,"sw":3.4},{"x":1.5,"y":0.2,"species":"setosa","sl":5.2,"sw":3.5},{"x":1.4,"y":0.2,"species":"setosa","sl":5.2,"sw":3.4},{"x":1.6,"y":0.2,"species":"setosa","sl":4.7,"sw":3.2},{"x":1.6,"y":0.2,"species":"setosa","sl":4.8,"sw":3.1},{"x":1.5,"y":0.4,"species":"setosa","sl":5.4,"sw":3.4},{"x":1.5,"y":0.1,"species":"setosa","sl":5.2,"sw":4.1},{"x":1.4,"y":0.2,"species":"setosa","sl":5.5,"sw":4.2},{"x":1.5,"y":0.2,"species":"setosa","sl":4.9,"sw":3.1},{"x":1.2,"y":0.2,"species":"setosa","sl":5.0,"sw":3.2},{"x":1.3,"y":0.2,"species":"setosa","sl":5.5,"sw":3.5},{"x":1.4,"y":0.1,"species":"setosa","sl":4.9,"sw":3.6},{"x":1.3,"y":0.2,"species":"setosa","sl":4.4,"sw":3.0},{"x":1.5,"y":0.2,"species":"setosa","sl":5.1,"sw":3.4},{"x":1.3,"y":0.3,"species":"setosa","sl":5.0,"sw":3.5},{"x":1.3,"y":0.3,"species":"setosa","sl":4.5,"sw":2.3},{"x":1.3,"y":0.2,"species":"setosa","sl":4.4,"sw":3.2},{"x":1.6,"y":0.6,"species":"setosa","sl":5.0,"sw":3.5},{"x":1.9,"y":0.4,"species":"setosa","sl":5.1,"sw":3.8},{"x":1.4,"y":0.3,"species":"setosa","sl":4.8,"sw":3.0},{"x":1.6,"y":0.2,"species":"setosa","sl":5.1,"sw":3.8},{"x":1.4,"y":0.2,"species":"setosa","sl":4.6,"sw":3.2},{"x":1.5,"y":0.2,"species":"setosa","sl":5.3,"sw":3.7},{"x":1.4,"y":0.2,"species":"setosa","sl":5.0,"sw":3.3},{"x":4.7,"y":1.4,"species":"versicolor","sl":7.0,"sw":3.2},{"x":4.5,"y":1.5,"species":"versicolor","sl":6.4,"sw":3.2},{"x":4.9,"y":1.5,"species":"versicolor","sl":6.9,"sw":3.1},{"x":4.0,"y":1.3,"species":"versicolor","sl":5.5,"sw":2.3},{"x":4.6,"y":1.5,"species":"versicolor","sl":6.5,"sw":2.8},{"x":4.5,"y":1.3,"species":"versicolor","sl":5.7,"sw":2.8},{"x":4.7,"y":1.6,"species":"versicolor","sl":6.3,"sw":3.3},{"x":3.3,"y":1.0,"species":"versicolor","sl":4.9,"sw":2.4},{"x":4.6,"y":1.3,"species":"versicolor","sl":6.6,"sw":2.9},{"x":3.9,"y":1.4,"species":"versicolor","sl":5.2,"sw":2.7},{"x":3.5,"y":1.0,"species":"versicolor","sl":5.0,"sw":2.0},{"x":4.2,"y":1.5,"species":"versicolor","sl":5.9,"sw":3.0},{"x":4.0,"y":1.0,"species":"versicolor","sl":6.0,"sw":2.2},{"x":4.7,"y":1.4,"species":"versicolor","sl":6.1,"sw":2.9},{"x":3.6,"y":1.3,"species":"versicolor","sl":5.6,"sw":2.9},{"x":4.4,"y":1.4,"species":"versicolor","sl":6.7,"sw":3.1},{"x":4.5,"y":1.5,"species":"versicolor","sl":5.6,"sw":3.0},{"x":4.1,"y":1.0,"species":"versicolor","sl":5.8,"sw":2.7},{"x":4.5,"y":1.5,"species":"versicolor","sl":6.2,"sw":2.2},{"x":3.9,"y":1.1,"species":"versicolor","sl":5.6,"sw":2.5},{"x":4.8,"y":1.8,"species":"versicolor","sl":5.9,"sw":3.2},{"x":4.0,"y":1.3,"species":"versicolor","sl":6.1,"sw":2.8},{"x":4.9,"y":1.5,"species":"versicolor","sl":6.3,"sw":2.5},{"x":4.7,"y":1.2,"species":"versicolor","sl":6.1,"sw":2.8},{"x":4.3,"y":1.3,"species":"versicolor","sl":6.4,"sw":2.9},{"x":4.4,"y":1.4,"species":"versicolor","sl":6.6,"sw":3.0},{"x":4.8,"y":1.4,"species":"versicolor","sl":6.8,"sw":2.8},{"x":5.0,"y":1.7,"species":"versicolor","sl":6.7,"sw":3.0},{"x":4.5,"y":1.5,"species":"versicolor","sl":6.0,"sw":2.9},{"x":3.5,"y":1.0,"species":"versicolor","sl":5.7,"sw":2.6},{"x":3.8,"y":1.1,"species":"versicolor","sl":5.5,"sw":2.4},{"x":3.7,"y":1.0,"species":"versicolor","sl":5.5,"sw":2.4},{"x":3.9,"y":1.2,"species":"versicolor","sl":5.8,"sw":2.7},{"x":5.1,"y":1.6,"species":"versicolor","sl":6.0,"sw":2.7},{"x":4.5,"y":1.5,"species":"versicolor","sl":5.4,"sw":3.0},{"x":4.5,"y":1.6,"species":"versicolor","sl":6.0,"sw":3.4},{"x":4.7,"y":1.5,"species":"versicolor","sl":6.7,"sw":3.1},{"x":4.4,"y":1.3,"species":"versicolor","sl":6.3,"sw":2.3},{"x":4.1,"y":1.3,"species":"versicolor","sl":5.6,"sw":3.0},{"x":4.0,"y":1.3,"species":"versicolor","sl":5.5,"sw":2.5},{"x":4.4,"y":1.2,"species":"versicolor","sl":5.5,"sw":2.6},{"x":4.6,"y":1.4,"species":"versicolor","sl":6.1,"sw":3.0},{"x":4.0,"y":1.2,"species":"versicolor","sl":5.8,"sw":2.6},{"x":3.3,"y":1.0,"species":"versicolor","sl":5.0,"sw":2.3},{"x":4.2,"y":1.3,"species":"versicolor","sl":5.6,"sw":2.7},{"x":4.2,"y":1.2,"species":"versicolor","sl":5.7,"sw":3.0},{"x":4.2,"y":1.3,"species":"versicolor","sl":5.7,"sw":2.9},{"x":4.3,"y":1.3,"species":"versicolor","sl":6.2,"sw":2.9},{"x":3.0,"y":1.1,"species":"versicolor","sl":5.1,"sw":2.5},{"x":4.1,"y":1.3,"species":"versicolor","sl":5.7,"sw":2.8},{"x":6.0,"y":2.5,"species":"virginica","sl":6.3,"sw":3.3},{"x":5.1,"y":1.9,"species":"virginica","sl":5.8,"sw":2.7},{"x":5.9,"y":2.1,"species":"virginica","sl":7.1,"sw":3.0},{"x":5.6,"y":1.8,"species":"virginica","sl":6.3,"sw":2.9},{"x":5.8,"y":2.2,"species":"virginica","sl":6.5,"sw":3.0},{"x":6.6,"y":2.1,"species":"virginica","sl":7.6,"sw":3.0},{"x":4.5,"y":1.7,"species":"virginica","sl":4.9,"sw":2.5},{"x":6.3,"y":1.8,"species":"virginica","sl":7.3,"sw":2.9},{"x":5.8,"y":1.8,"species":"virginica","sl":6.7,"sw":2.5},{"x":6.1,"y":2.5,"species":"virginica","sl":7.2,"sw":3.6},{"x":5.1,"y":2.0,"species":"virginica","sl":6.5,"sw":3.2},{"x":5.3,"y":1.9,"species":"virginica","sl":6.4,"sw":2.7},{"x":5.5,"y":2.1,"species":"virginica","sl":6.8,"sw":3.0},{"x":5.0,"y":2.0,"species":"virginica","sl":5.7,"sw":2.5},{"x":5.1,"y":2.4,"species":"virginica","sl":5.8,"sw":2.8},{"x":5.3,"y":2.3,"species":"virginica","sl":6.4,"sw":3.2},{"x":5.5,"y":1.8,"species":"virginica","sl":6.5,"sw":3.0},{"x":6.7,"y":2.2,"species":"virginica","sl":7.7,"sw":3.8},{"x":6.9,"y":2.3,"species":"virginica","sl":7.7,"sw":2.6},{"x":5.0,"y":1.5,"species":"virginica","sl":6.0,"sw":2.2},{"x":5.7,"y":2.3,"species":"virginica","sl":6.9,"sw":3.2},{"x":4.9,"y":2.0,"species":"virginica","sl":5.6,"sw":2.8},{"x":6.7,"y":2.0,"species":"virginica","sl":7.7,"sw":2.8},{"x":4.9,"y":1.8,"species":"virginica","sl":6.3,"sw":2.7},{"x":5.7,"y":2.1,"species":"virginica","sl":6.7,"sw":3.3},{"x":6.0,"y":1.8,"species":"virginica","sl":7.2,"sw":3.2},{"x":4.8,"y":1.8,"species":"virginica","sl":6.2,"sw":2.8},{"x":4.9,"y":1.8,"species":"virginica","sl":6.1,"sw":3.0},{"x":5.6,"y":2.1,"species":"virginica","sl":6.4,"sw":2.8},{"x":5.8,"y":1.6,"species":"virginica","sl":7.2,"sw":3.0},{"x":6.1,"y":1.9,"species":"virginica","sl":7.4,"sw":2.8},{"x":6.4,"y":2.0,"species":"virginica","sl":7.9,"sw":3.8},{"x":5.6,"y":2.2,"species":"virginica","sl":6.4,"sw":2.8},{"x":5.1,"y":1.5,"species":"virginica","sl":6.3,"sw":2.8},{"x":5.6,"y":1.4,"species":"virginica","sl":6.1,"sw":2.6},{"x":6.1,"y":2.3,"species":"virginica","sl":7.7,"sw":3.0},{"x":5.6,"y":2.4,"species":"virginica","sl":6.3,"sw":3.4},{"x":5.5,"y":1.8,"species":"virginica","sl":6.4,"sw":3.1},{"x":4.8,"y":1.8,"species":"virginica","sl":6.0,"sw":3.0},{"x":5.4,"y":2.1,"species":"virginica","sl":6.9,"sw":3.1},{"x":5.6,"y":2.4,"species":"virginica","sl":6.7,"sw":3.1},{"x":5.1,"y":2.3,"species":"virginica","sl":6.9,"sw":3.1},{"x":5.1,"y":1.9,"species":"virginica","sl":5.8,"sw":2.7},{"x":5.9,"y":2.3,"species":"virginica","sl":6.8,"sw":3.2},{"x":5.7,"y":2.5,"species":"virginica","sl":6.7,"sw":3.3},{"x":5.2,"y":2.3,"species":"virginica","sl":6.7,"sw":3.0},{"x":5.0,"y":1.9,"species":"virginica","sl":6.3,"sw":2.5},{"x":5.2,"y":2.0,"species":"virginica","sl":6.5,"sw":3.0},{"x":5.4,"y":2.3,"species":"virginica","sl":6.2,"sw":3.4},{"x":5.1,"y":1.8,"species":"virginica","sl":5.9,"sw":3.0}],"regression":{"slope":1.834,"intercept":-6.9271,"r2":0.8181,"mse":0.5961,"rmse":0.7721,"points":[{"x":6.1,"y":4.7,"pred":4.26},{"x":5.7,"y":1.7,"pred":3.526},{"x":7.7,"y":6.9,"pred":7.194},{"x":6.0,"y":4.5,"pred":4.077},{"x":6.8,"y":4.8,"pred":5.544},{"x":5.4,"y":1.5,"pred":2.976},{"x":5.6,"y":3.6,"pred":3.343},{"x":6.9,"y":5.1,"pred":5.727},{"x":6.2,"y":4.5,"pred":4.443},{"x":5.8,"y":3.9,"pred":3.71},{"x":6.5,"y":5.1,"pred":4.994},{"x":4.8,"y":1.4,"pred":1.876},{"x":5.5,"y":1.3,"pred":3.16},{"x":4.9,"y":1.5,"pred":2.059},{"x":5.1,"y":1.5,"pred":2.426},{"x":6.3,"y":4.7,"pred":4.627},{"x":6.5,"y":5.8,"pred":4.994},{"x":5.6,"y":3.9,"pred":3.343},{"x":5.7,"y":4.5,"pred":3.526},{"x":6.4,"y":5.6,"pred":4.81},{"x":4.7,"y":1.6,"pred":1.692},{"x":6.1,"y":4.9,"pred":4.26},{"x":5.0,"y":1.6,"pred":2.243},{"x":6.4,"y":5.6,"pred":4.81},{"x":7.9,"y":6.4,"pred":7.561},{"x":6.7,"y":5.2,"pred":5.36},{"x":6.7,"y":5.8,"pred":5.36},{"x":6.8,"y":5.9,"pred":5.544},{"x":4.8,"y":1.4,"pred":1.876},{"x":4.8,"y":1.6,"pred":1.876}],"line":[{"x":4.3,"y":0.959},{"x":4.44,"y":1.21},{"x":4.57,"y":1.46},{"x":4.71,"y":1.711},{"x":4.85,"y":1.962},{"x":4.98,"y":2.213},{"x":5.12,"y":2.463},{"x":5.26,"y":2.714},{"x":5.39,"y":2.965},{"x":5.53,"y":3.215},{"x":5.67,"y":3.466},{"x":5.8,"y":3.717},{"x":5.94,"y":3.968},{"x":6.08,"y":4.218},{"x":6.21,"y":4.469},{"x":6.35,"y":4.72},{"x":6.49,"y":4.97},{"x":6.62,"y":5.221},{"x":6.76,"y":5.472},{"x":6.9,"y":5.723},{"x":7.03,"y":5.973},{"x":7.17,"y":6.224},{"x":7.31,"y":6.475},{"x":7.44,"y":6.725},{"x":7.58,"y":6.976},{"x":7.72,"y":7.227},{"x":7.85,"y":7.478},{"x":7.9,"y":7.561}]},"clustering":{"elbow":[{"k":2,"inertia":222.36},{"k":3,"inertia":139.82},{"k":4,"inertia":114.09},{"k":5,"inertia":90.93},{"k":6,"inertia":81.54},{"k":7,"inertia":72.63},{"k":8,"inertia":62.54}],"silhouette":[{"k":2,"score":0.5818},{"k":3,"score":0.4599},{"k":4,"score":0.3869},{"k":5,"score":0.3459},{"k":6,"score":0.3171},{"k":7,"score":0.3202},{"k":8,"score":0.3387}],"points":[{"x":1.4,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.3,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.7,"y":0.4,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.3,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.1,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.6,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.1,"cluster":1,"species":"setosa"},{"x":1.1,"y":0.1,"cluster":1,"species":"setosa"},{"x":1.2,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.4,"cluster":1,"species":"setosa"},{"x":1.3,"y":0.4,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.3,"cluster":1,"species":"setosa"},{"x":1.7,"y":0.3,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.3,"cluster":1,"species":"setosa"},{"x":1.7,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.4,"cluster":1,"species":"setosa"},{"x":1.0,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.7,"y":0.5,"cluster":1,"species":"setosa"},{"x":1.9,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.6,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.6,"y":0.4,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.6,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.6,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.4,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.1,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.2,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.3,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.1,"cluster":1,"species":"setosa"},{"x":1.3,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.3,"y":0.3,"cluster":1,"species":"setosa"},{"x":1.3,"y":0.3,"cluster":1,"species":"setosa"},{"x":1.3,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.6,"y":0.6,"cluster":1,"species":"setosa"},{"x":1.9,"y":0.4,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.3,"cluster":1,"species":"setosa"},{"x":1.6,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.5,"y":0.2,"cluster":1,"species":"setosa"},{"x":1.4,"y":0.2,"cluster":1,"species":"setosa"},{"x":4.7,"y":1.4,"cluster":2,"species":"versicolor"},{"x":4.5,"y":1.5,"cluster":2,"species":"versicolor"},{"x":4.9,"y":1.5,"cluster":2,"species":"versicolor"},{"x":4.0,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.6,"y":1.5,"cluster":0,"species":"versicolor"},{"x":4.5,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.7,"y":1.6,"cluster":2,"species":"versicolor"},{"x":3.3,"y":1.0,"cluster":0,"species":"versicolor"},{"x":4.6,"y":1.3,"cluster":0,"species":"versicolor"},{"x":3.9,"y":1.4,"cluster":0,"species":"versicolor"},{"x":3.5,"y":1.0,"cluster":0,"species":"versicolor"},{"x":4.2,"y":1.5,"cluster":0,"species":"versicolor"},{"x":4.0,"y":1.0,"cluster":0,"species":"versicolor"},{"x":4.7,"y":1.4,"cluster":0,"species":"versicolor"},{"x":3.6,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.4,"y":1.4,"cluster":2,"species":"versicolor"},{"x":4.5,"y":1.5,"cluster":0,"species":"versicolor"},{"x":4.1,"y":1.0,"cluster":0,"species":"versicolor"},{"x":4.5,"y":1.5,"cluster":0,"species":"versicolor"},{"x":3.9,"y":1.1,"cluster":0,"species":"versicolor"},{"x":4.8,"y":1.8,"cluster":2,"species":"versicolor"},{"x":4.0,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.9,"y":1.5,"cluster":0,"species":"versicolor"},{"x":4.7,"y":1.2,"cluster":0,"species":"versicolor"},{"x":4.3,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.4,"y":1.4,"cluster":2,"species":"versicolor"},{"x":4.8,"y":1.4,"cluster":2,"species":"versicolor"},{"x":5.0,"y":1.7,"cluster":2,"species":"versicolor"},{"x":4.5,"y":1.5,"cluster":0,"species":"versicolor"},{"x":3.5,"y":1.0,"cluster":0,"species":"versicolor"},{"x":3.8,"y":1.1,"cluster":0,"species":"versicolor"},{"x":3.7,"y":1.0,"cluster":0,"species":"versicolor"},{"x":3.9,"y":1.2,"cluster":0,"species":"versicolor"},{"x":5.1,"y":1.6,"cluster":0,"species":"versicolor"},{"x":4.5,"y":1.5,"cluster":0,"species":"versicolor"},{"x":4.5,"y":1.6,"cluster":2,"species":"versicolor"},{"x":4.7,"y":1.5,"cluster":2,"species":"versicolor"},{"x":4.4,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.1,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.0,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.4,"y":1.2,"cluster":0,"species":"versicolor"},{"x":4.6,"y":1.4,"cluster":0,"species":"versicolor"},{"x":4.0,"y":1.2,"cluster":0,"species":"versicolor"},{"x":3.3,"y":1.0,"cluster":0,"species":"versicolor"},{"x":4.2,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.2,"y":1.2,"cluster":0,"species":"versicolor"},{"x":4.2,"y":1.3,"cluster":0,"species":"versicolor"},{"x":4.3,"y":1.3,"cluster":0,"species":"versicolor"},{"x":3.0,"y":1.1,"cluster":0,"species":"versicolor"},{"x":4.1,"y":1.3,"cluster":0,"species":"versicolor"},{"x":6.0,"y":2.5,"cluster":2,"species":"virginica"},{"x":5.1,"y":1.9,"cluster":0,"species":"virginica"},{"x":5.9,"y":2.1,"cluster":2,"species":"virginica"},{"x":5.6,"y":1.8,"cluster":2,"species":"virginica"},{"x":5.8,"y":2.2,"cluster":2,"species":"virginica"},{"x":6.6,"y":2.1,"cluster":2,"species":"virginica"},{"x":4.5,"y":1.7,"cluster":0,"species":"virginica"},{"x":6.3,"y":1.8,"cluster":2,"species":"virginica"},{"x":5.8,"y":1.8,"cluster":2,"species":"virginica"},{"x":6.1,"y":2.5,"cluster":2,"species":"virginica"},{"x":5.1,"y":2.0,"cluster":2,"species":"virginica"},{"x":5.3,"y":1.9,"cluster":2,"species":"virginica"},{"x":5.5,"y":2.1,"cluster":2,"species":"virginica"},{"x":5.0,"y":2.0,"cluster":0,"species":"virginica"},{"x":5.1,"y":2.4,"cluster":0,"species":"virginica"},{"x":5.3,"y":2.3,"cluster":2,"species":"virginica"},{"x":5.5,"y":1.8,"cluster":2,"species":"virginica"},{"x":6.7,"y":2.2,"cluster":2,"species":"virginica"},{"x":6.9,"y":2.3,"cluster":2,"species":"virginica"},{"x":5.0,"y":1.5,"cluster":0,"species":"virginica"},{"x":5.7,"y":2.3,"cluster":2,"species":"virginica"},{"x":4.9,"y":2.0,"cluster":0,"species":"virginica"},{"x":6.7,"y":2.0,"cluster":2,"species":"virginica"},{"x":4.9,"y":1.8,"cluster":0,"species":"virginica"},{"x":5.7,"y":2.1,"cluster":2,"species":"virginica"},{"x":6.0,"y":1.8,"cluster":2,"species":"virginica"},{"x":4.8,"y":1.8,"cluster":0,"species":"virginica"},{"x":4.9,"y":1.8,"cluster":2,"species":"virginica"},{"x":5.6,"y":2.1,"cluster":2,"species":"virginica"},{"x":5.8,"y":1.6,"cluster":2,"species":"virginica"},{"x":6.1,"y":1.9,"cluster":2,"species":"virginica"},{"x":6.4,"y":2.0,"cluster":2,"species":"virginica"},{"x":5.6,"y":2.2,"cluster":2,"species":"virginica"},{"x":5.1,"y":1.5,"cluster":0,"species":"virginica"},{"x":5.6,"y":1.4,"cluster":0,"species":"virginica"},{"x":6.1,"y":2.3,"cluster":2,"species":"virginica"},{"x":5.6,"y":2.4,"cluster":2,"species":"virginica"},{"x":5.5,"y":1.8,"cluster":2,"species":"virginica"},{"x":4.8,"y":1.8,"cluster":0,"species":"virginica"},{"x":5.4,"y":2.1,"cluster":2,"species":"virginica"},{"x":5.6,"y":2.4,"cluster":2,"species":"virginica"},{"x":5.1,"y":2.3,"cluster":2,"species":"virginica"},{"x":5.1,"y":1.9,"cluster":0,"species":"virginica"},{"x":5.9,"y":2.3,"cluster":2,"species":"virginica"},{"x":5.7,"y":2.5,"cluster":2,"species":"virginica"},{"x":5.2,"y":2.3,"cluster":2,"species":"virginica"},{"x":5.0,"y":1.9,"cluster":0,"species":"virginica"},{"x":5.2,"y":2.0,"cluster":2,"species":"virginica"},{"x":5.4,"y":2.3,"cluster":2,"species":"virginica"},{"x":5.1,"y":1.8,"cluster":0,"species":"virginica"}]},"classification":[{"model":"Logistic Regression","accuracy":0.9333,"f1":0.9333,"precision":0.9333},{"model":"Decision Tree","accuracy":0.9333,"f1":0.9333,"precision":0.9333},{"model":"Random Forest","accuracy":0.9333,"f1":0.9333,"precision":0.9333}],"feature_importance":[{"feature":"petal_width","importance":0.4372},{"feature":"petal_length","importance":0.4315},{"feature":"sepal_length","importance":0.1163},{"feature":"sepal_width","importance":0.015}],"numeric_cols":["sepal_length","sepal_width","petal_length","petal_width"],"species_list":["setosa","versicolor","virginica"],"distrib":{"sepal_length":{"setosa":[5.1,4.9,4.7,4.6,5.0,5.4,4.6,5.0,4.4,4.9,5.4,4.8,4.8,4.3,5.8,5.7,5.4,5.1,5.7,5.1,5.4,5.1,4.6,5.1,4.8,5.0,5.0,5.2,5.2,4.7,4.8,5.4,5.2,5.5,4.9,5.0,5.5,4.9,4.4,5.1,5.0,4.5,4.4,5.0,5.1,4.8,5.1,4.6,5.3,5.0],"versicolor":[7.0,6.4,6.9,5.5,6.5,5.7,6.3,4.9,6.6,5.2,5.0,5.9,6.0,6.1,5.6,6.7,5.6,5.8,6.2,5.6,5.9,6.1,6.3,6.1,6.4,6.6,6.8,6.7,6.0,5.7,5.5,5.5,5.8,6.0,5.4,6.0,6.7,6.3,5.6,5.5,5.5,6.1,5.8,5.0,5.6,5.7,5.7,6.2,5.1,5.7],"virginica":[6.3,5.8,7.1,6.3,6.5,7.6,4.9,7.3,6.7,7.2,6.5,6.4,6.8,5.7,5.8,6.4,6.5,7.7,7.7,6.0,6.9,5.6,7.7,6.3,6.7,7.2,6.2,6.1,6.4,7.2,7.4,7.9,6.4,6.3,6.1,7.7,6.3,6.4,6.0,6.9,6.7,6.9,5.8,6.8,6.7,6.7,6.3,6.5,6.2,5.9]},"sepal_width":{"setosa":[3.5,3.0,3.2,3.1,3.6,3.9,3.4,3.4,2.9,3.1,3.7,3.4,3.0,3.0,4.0,4.4,3.9,3.5,3.8,3.8,3.4,3.7,3.6,3.3,3.4,3.0,3.4,3.5,3.4,3.2,3.1,3.4,4.1,4.2,3.1,3.2,3.5,3.6,3.0,3.4,3.5,2.3,3.2,3.5,3.8,3.0,3.8,3.2,3.7,3.3],"versicolor":[3.2,3.2,3.1,2.3,2.8,2.8,3.3,2.4,2.9,2.7,2.0,3.0,2.2,2.9,2.9,3.1,3.0,2.7,2.2,2.5,3.2,2.8,2.5,2.8,2.9,3.0,2.8,3.0,2.9,2.6,2.4,2.4,2.7,2.7,3.0,3.4,3.1,2.3,3.0,2.5,2.6,3.0,2.6,2.3,2.7,3.0,2.9,2.9,2.5,2.8],"virginica":[3.3,2.7,3.0,2.9,3.0,3.0,2.5,2.9,2.5,3.6,3.2,2.7,3.0,2.5,2.8,3.2,3.0,3.8,2.6,2.2,3.2,2.8,2.8,2.7,3.3,3.2,2.8,3.0,2.8,3.0,2.8,3.8,2.8,2.8,2.6,3.0,3.4,3.1,3.0,3.1,3.1,3.1,2.7,3.2,3.3,3.0,2.5,3.0,3.4,3.0]},"petal_length":{"setosa":[1.4,1.4,1.3,1.5,1.4,1.7,1.4,1.5,1.4,1.5,1.5,1.6,1.4,1.1,1.2,1.5,1.3,1.4,1.7,1.5,1.7,1.5,1.0,1.7,1.9,1.6,1.6,1.5,1.4,1.6,1.6,1.5,1.5,1.4,1.5,1.2,1.3,1.4,1.3,1.5,1.3,1.3,1.3,1.6,1.9,1.4,1.6,1.4,1.5,1.4],"versicolor":[4.7,4.5,4.9,4.0,4.6,4.5,4.7,3.3,4.6,3.9,3.5,4.2,4.0,4.7,3.6,4.4,4.5,4.1,4.5,3.9,4.8,4.0,4.9,4.7,4.3,4.4,4.8,5.0,4.5,3.5,3.8,3.7,3.9,5.1,4.5,4.5,4.7,4.4,4.1,4.0,4.4,4.6,4.0,3.3,4.2,4.2,4.2,4.3,3.0,4.1],"virginica":[6.0,5.1,5.9,5.6,5.8,6.6,4.5,6.3,5.8,6.1,5.1,5.3,5.5,5.0,5.1,5.3,5.5,6.7,6.9,5.0,5.7,4.9,6.7,4.9,5.7,6.0,4.8,4.9,5.6,5.8,6.1,6.4,5.6,5.1,5.6,6.1,5.6,5.5,4.8,5.4,5.6,5.1,5.1,5.9,5.7,5.2,5.0,5.2,5.4,5.1]},"petal_width":{"setosa":[0.2,0.2,0.2,0.2,0.2,0.4,0.3,0.2,0.2,0.1,0.2,0.2,0.1,0.1,0.2,0.4,0.4,0.3,0.3,0.3,0.2,0.4,0.2,0.5,0.2,0.2,0.4,0.2,0.2,0.2,0.2,0.4,0.1,0.2,0.2,0.2,0.2,0.1,0.2,0.2,0.3,0.3,0.2,0.6,0.4,0.3,0.2,0.2,0.2,0.2],"versicolor":[1.4,1.5,1.5,1.3,1.5,1.3,1.6,1.0,1.3,1.4,1.0,1.5,1.0,1.4,1.3,1.4,1.5,1.0,1.5,1.1,1.8,1.3,1.5,1.2,1.3,1.4,1.4,1.7,1.5,1.0,1.1,1.0,1.2,1.6,1.5,1.6,1.5,1.3,1.3,1.3,1.2,1.4,1.2,1.0,1.3,1.2,1.3,1.3,1.1,1.3],"virginica":[2.5,1.9,2.1,1.8,2.2,2.1,1.7,1.8,1.8,2.5,2.0,1.9,2.1,2.0,2.4,2.3,1.8,2.2,2.3,1.5,2.3,2.0,2.0,1.8,2.1,1.8,1.8,1.8,2.1,1.6,1.9,2.0,2.2,1.5,1.4,2.3,2.4,1.8,1.8,2.1,2.4,2.3,1.9,2.3,2.5,2.3,1.9,2.0,2.3,1.8]}}};
+
+// ════════════════════════════════════════════════════
+// SYNTHETIC TIME-SERIES DATA  (1000 business-day random walk)
+// ════════════════════════════════════════════════════
+(function generateTS() {
+  let price = 150, closes = [], dates = [];
+  const start = new Date('2020-01-02');
+  let d = new Date(start);
+  const seeded = (function() {
+    let s = 42;
+    return function() { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
+  })();
+  function randn() {
+    const u = seeded(), v = seeded();
+    return Math.sqrt(-2*Math.log(u+1e-10)) * Math.cos(2*Math.PI*v);
+  }
+  while (closes.length < 1000) {
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) {
+      price *= (1 + 0.0003 + 0.018 * randn());
+      closes.push(Math.round(price * 100) / 100);
+      dates.push(d.toISOString().slice(0,10));
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  // Weekly resample (take every 5th close)
+  const wk = [], wkDates = [];
+  for (let i = 4; i < closes.length; i += 5) { wk.push(closes[i]); wkDates.push(dates[i]); }
+  // Trend: 4-week (20 point) centered MA of weekly
+  const trend = wk.map((_, i) => {
+    if (i < 10 || i >= wk.length - 10) return null;
+    return wk.slice(i-10, i+10).reduce((a,b)=>a+b,0)/20;
+  });
+  // Seasonal: wk minus trend, period 4 — simple average over residuals
+  const seas = wk.map((v, i) => trend[i] != null ? (v - trend[i]) * Math.sin(2*Math.PI*i/4)*0.3 : null);
+  // Residual
+  const resid = wk.map((v, i) => (trend[i] != null && seas[i] != null) ? v - trend[i] - seas[i] : null);
+  // MA on daily
+  const ma7 = closes.map((_, i) => i < 3 || i > closes.length-4 ? null :
+    closes.slice(i-3, i+4).reduce((a,b)=>a+b,0)/7);
+  const ma30 = closes.map((_, i) => i < 15 || i > closes.length-15 ? null :
+    closes.slice(i-15, i+15).reduce((a,b)=>a+b,0)/30);
+  // Returns
+  const returns = closes.map((v,i) => i===0 ? null : ((v-closes[i-1])/closes[i-1]*100));
+  D.ts = { dates, closes, ma7, ma30, wkDates, trend, seas, resid, returns };
+})();
+
+// ════════════════════════════════════════════════════
+// SYNTHETIC NLP DATA
+// ════════════════════════════════════════════════════
+(function generateNLP() {
+  const posWords = ['product','recommend','quality','love','great','amazing','excellent','perfect','fantastic','best'];
+  const negWords = ['quality','terrible','disappointed','waste','broke','worst','horrible','avoid','defective','poor'];
+  const total = 732, pos = 312, neg = 218, neu = 202;
+  // Simple polarity bins for histogram
+  const polBins = Array.from({length:21}, (_,i) => -1 + i*0.1);
+  const mkBinData = (mean, std, n) => polBins.map(b => {
+    const x = (b - mean) / std;
+    return Math.round(n * 0.1 * Math.exp(-0.5*x*x) / (std * Math.sqrt(2*Math.PI)));
+  });
+  const subByLabel = {
+    positive: [0.52, 0.58, 0.61, 0.55, 0.63, 0.57, 0.60, 0.54],
+    negative: [0.49, 0.55, 0.58, 0.52, 0.60, 0.53, 0.57, 0.50],
+    neutral:  [0.38, 0.42, 0.40, 0.44, 0.39, 0.41, 0.43, 0.37],
+  };
+  D.nlp = {
+    counts: { positive: pos, negative: neg, neutral: neu },
+    posWords: posWords.map((w,i) => ({ word: w, count: 35 - i*2 })),
+    negWords: negWords.map((w,i) => ({ word: w, count: 30 - i*2 })),
+    polBins,
+    polPos: mkBinData(0.25, 0.15, pos),
+    polNeg: mkBinData(-0.22, 0.14, neg),
+    polNeu: mkBinData(0.01, 0.06, neu),
+    subByLabel,
+  };
+})();
+
+// ════════════════════════════════════════════════════
+// GLOBALS
+// ════════════════════════════════════════════════════
+const C = { setosa:'#7de8c8', versicolor:'#f4845f', virginica:'#9b8fff',
+            cl0:'#f4845f', cl1:'#7de8c8', cl2:'#9b8fff',
+            grid:'rgba(255,255,255,0.04)', text:'#6b7280', textBright:'#e8eaf0' };
+const DEFAULTS = { color: C.text, font: "11px 'DM Mono', monospace" };
+Chart.defaults.color = C.text;
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+const charts = {};
+
+function mkChart(id, cfg) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), cfg);
+  return charts[id];
+}
+
+function scatterDataset(data, species, color, labelStr) {
+  return {
+    label: labelStr || species,
+    data: data.filter(p => p.species === species).map(p => ({x: p.x, y: p.y, sl: p.sl, sw: p.sw})),
+    backgroundColor: color + 'cc',
+    borderColor: color,
+    borderWidth: 1,
+    pointRadius: 5,
+    pointHoverRadius: 7,
+  };
+}
+
+// ════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════
+function showSection(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('btn-' + id).classList.add('active');
+  if (!charts['init-' + id]) {
+    charts['init-' + id] = true;
+    ({ overview: initOverview, eda: initEDA, regression: initRegression,
+       clustering: initClustering, classification: initClassification,
+       timeseries: initTimeseries, nlp: initNLP })[id]?.();
+  }
+}
+
+// ════════════════════════════════════════════════════
+// OVERVIEW
+// ════════════════════════════════════════════════════
+let overviewScatterChart;
+function initOverview() {
+  // Donut
+  mkChart('c-species-donut', {
+    type: 'doughnut',
+    data: {
+      labels: ['setosa', 'versicolor', 'virginica'],
+      datasets: [{ data: [50, 50, 50], backgroundColor: [C.setosa+'bb', C.versicolor+'bb', C.virginica+'bb'],
+        borderColor: [C.setosa, C.versicolor, C.virginica], borderWidth: 1.5, hoverOffset: 6 }]
+    },
+    options: { plugins: { legend: { position: 'right', labels: { color: C.text, font: { family: "'DM Mono', monospace", size: 11 }, boxWidth: 12, padding: 12 } } }, cutout: '65%', maintainAspectRatio: false }
+  });
+
+  // Bar — species means
+  const feats = D.numeric_cols;
+  const species = D.species_list;
+  const colors = [C.setosa, C.versicolor, C.virginica];
+  mkChart('c-species-bar', {
+    type: 'bar',
+    data: {
+      labels: feats.map(f => f.replace('_',' ')),
+      datasets: species.map((sp, i) => ({
+        label: sp, backgroundColor: colors[i] + '99', borderColor: colors[i],
+        borderWidth: 1, borderRadius: 3,
+        data: feats.map(f => D.species_means[sp][f])
+      }))
+    },
+    options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: C.text, font: { family: "'DM Mono', monospace", size: 10 }, boxWidth: 10, padding: 8 } } },
+      scales: { x: { grid: { color: C.grid }, ticks: { color: C.text } }, y: { grid: { color: C.grid }, ticks: { color: C.text }, title: { display: true, text: 'cm', color: C.text } } }
+    }
+  });
+
+  // Scatter
+  overviewScatterChart = mkChart('c-overview-scatter', {
+    type: 'scatter',
+    data: { datasets: [
+      scatterDataset(D.scatter, 'setosa', C.setosa),
+      scatterDataset(D.scatter, 'versicolor', C.versicolor),
+      scatterDataset(D.scatter, 'virginica', C.virginica),
+    ]},
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: {
+        label: ctx => `${ctx.dataset.label}: (${ctx.raw.x}, ${ctx.raw.y})`
+      }}},
+      scales: {
+        x: { title: { display: true, text: 'Petal Length (cm)', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } },
+        y: { title: { display: true, text: 'Petal Width (cm)', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } }
+      }
+    }
+  });
+}
+
+function filterOverviewScatter(sp) {
+  document.querySelectorAll('[id^="fb-"]').forEach(b => { b.className = 'filter-btn'; });
+  document.getElementById('fb-' + sp).className = 'filter-btn active-' + sp;
+  const chart = charts['c-overview-scatter'];
+  chart.data.datasets.forEach(ds => {
+    ds.hidden = (sp !== 'all' && ds.label !== sp);
+  });
+  chart.update();
+}
+
+// ════════════════════════════════════════════════════
+// EDA
+// ════════════════════════════════════════════════════
+let distribChart;
+function initEDA() {
+  // Stats table
+  const cols = D.numeric_cols;
+  const keys = ['mean','median','std','min','max','skew'];
+  const table = document.getElementById('stats-table');
+  table.innerHTML = `<thead><tr><th>Feature</th>${keys.map(k=>`<th>${k}</th>`).join('')}</tr></thead>
+    <tbody>${cols.map(col => `<tr>
+      <td>${col.replace('_',' ')}</td>
+      ${keys.map(k => {
+        const v = D.summary[col][k];
+        const hi = (k==='mean'||k==='median') && (col==='petal_length'||col==='petal_width');
+        return `<td class="${hi?'val-hi':''}">${v}</td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody>`;
+
+  // Correlation heatmap
+  buildCorrHeatmap();
+
+  // Distribution (default: sepal_length)
+  showDistrib('sepal_length');
+
+  // Box plot
+  buildBoxplot();
+}
+
+function buildCorrHeatmap() {
+  const cols = D.numeric_cols;
+  const el = document.getElementById('corr-heatmap');
+  const n = cols.length;
+  // With label col/row
+  const size = Math.min(300, el.offsetWidth || 300);
+  const cell = Math.floor((size - 60) / n);
+  el.style.display = 'grid';
+  el.style.gridTemplateColumns = `60px ${'1fr '.repeat(n)}`;
+  el.style.gap = '3px';
+
+  // Top-left empty
+  el.innerHTML = `<div></div>`;
+  // Column headers
+  cols.forEach(c => { el.innerHTML += `<div class="corr-label" style="font-size:0.6rem">${c.replace('_','\n')}</div>`; });
+  // Rows
+  cols.forEach(row => {
+    el.innerHTML += `<div class="corr-label" style="justify-content:flex-end;padding-right:6px;font-size:0.6rem">${row.replace('_','\n')}</div>`;
+    cols.forEach(col => {
+      const v = D.corr[row][col];
+      const abs = Math.abs(v);
+      let bg, tc;
+      if (v > 0) { bg = `rgba(125,232,200,${0.1 + abs*0.7})`; tc = v > 0.5 ? '#085041' : '#7de8c8'; }
+      else { bg = `rgba(244,132,95,${0.1 + abs*0.7})`; tc = abs > 0.5 ? '#4A1B0C' : '#f4845f'; }
+      if (row === col) { bg = 'rgba(255,255,255,0.1)'; tc = '#e8eaf0'; }
+      el.innerHTML += `<div class="corr-cell" style="background:${bg};color:${tc};min-height:${cell}px;min-width:${cell}px" title="${row} ↔ ${col}: ${v}">${v.toFixed(2)}</div>`;
+    });
+  });
+}
+
+let currentDistribFeature = 'sepal_length';
+function showDistrib(feat) {
+  currentDistribFeature = feat;
+  ['sl','sw','pl','pw'].forEach(id => document.getElementById('fd-'+id).className = 'filter-btn');
+  const ids = {sepal_length:'sl',sepal_width:'sw',petal_length:'pl',petal_width:'pw'};
+  document.getElementById('fd-'+ids[feat]).className = 'filter-btn active-all';
+
+  const sp = D.species_list;
+  const colors = [C.setosa, C.versicolor, C.virginica];
+
+  // Make histogram bins
+  const allVals = sp.flatMap(s => D.distrib[feat][s]);
+  const mn = Math.min(...allVals), mx = Math.max(...allVals);
+  const bins = 12;
+  const bw = (mx - mn) / bins;
+  const labels = Array.from({length: bins}, (_,i) => (mn + i*bw + bw/2).toFixed(1));
+
+  const datasets = sp.map((s, i) => {
+    const counts = Array(bins).fill(0);
+    D.distrib[feat][s].forEach(v => {
+      const b = Math.min(Math.floor((v - mn) / bw), bins - 1);
+      counts[b]++;
+    });
+    return { label: s, data: counts, backgroundColor: colors[i] + '99', borderColor: colors[i], borderWidth: 1, borderRadius: 3 };
+  });
+
+  distribChart = mkChart('c-distrib', {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: C.grid }, ticks: { color: C.text, font: { size: 9 } }, title: { display: true, text: feat.replace('_',' ') + ' (cm)', color: C.text } },
+        y: { grid: { color: C.grid }, ticks: { color: C.text }, title: { display: true, text: 'Count', color: C.text } }
+      }
+    }
+  });
+}
+
+function buildBoxplot() {
+  // Approximate box plots with bar chart showing Q1, median, Q3
+  const feats = D.numeric_cols;
+  const sp = D.species_list;
+  const colors = [C.setosa, C.versicolor, C.virginica];
+
+  function stats(arr) {
+    const s = [...arr].sort((a,b)=>a-b);
+    const q = p => s[Math.floor(p * s.length)];
+    return { min: s[0], q1: q(0.25), med: q(0.5), q3: q(0.75), max: s[s.length-1] };
+  }
+
+  // One bar per species per feature showing mean ± std (simplified visual)
+  const labels = feats.map(f => f.replace('_',' '));
+  const datasets = sp.map((s, i) => ({
+    label: s,
+    data: feats.map(f => {
+      const arr = D.distrib[f][s];
+      const mean = arr.reduce((a,b)=>a+b,0)/arr.length;
+      return parseFloat(mean.toFixed(3));
+    }),
+    backgroundColor: colors[i] + '88',
+    borderColor: colors[i],
+    borderWidth: 1.5,
+    borderRadius: 4,
+  }));
+
+  mkChart('c-boxplot', {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: C.text, font: { family: "'DM Mono', monospace", size: 10 }, boxWidth: 10 } } },
+      scales: {
+        x: { grid: { color: C.grid }, ticks: { color: C.text } },
+        y: { grid: { color: C.grid }, ticks: { color: C.text }, title: { display: true, text: 'Mean (cm)', color: C.text } }
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+// REGRESSION
+// ════════════════════════════════════════════════════
+function initRegression() {
+  const reg = D.regression;
+
+  // Fit
+  mkChart('c-reg-fit', {
+    type: 'scatter',
+    data: {
+      datasets: [
+        {
+          label: 'Actual', type: 'scatter',
+          data: reg.points.map(p => ({x: p.x, y: p.y})),
+          backgroundColor: C.setosa + 'cc', borderColor: C.setosa, pointRadius: 5,
+        },
+        {
+          label: 'Fitted line', type: 'line',
+          data: reg.line.map(p => ({x: p.x, y: p.y})),
+          borderColor: C.versicolor, borderWidth: 2.5,
+          pointRadius: 0, fill: false, tension: 0,
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: C.text, font: { size: 10 }, boxWidth: 10 } } },
+      scales: {
+        x: { title: { display: true, text: 'Sepal Length (cm)', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } },
+        y: { title: { display: true, text: 'Petal Length (cm)', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } }
+      }
+    }
+  });
+
+  // Residuals
+  mkChart('c-reg-resid', {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Residual', data: reg.points.map(p => ({x: p.pred, y: +(p.y - p.pred).toFixed(4)})),
+        backgroundColor: C.virginica + 'cc', borderColor: C.virginica, pointRadius: 5,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, annotation: {} },
+      scales: {
+        x: { title: { display: true, text: 'Fitted Values', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } },
+        y: { title: { display: true, text: 'Residuals', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } }
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+// CLUSTERING
+// ════════════════════════════════════════════════════
+function initClustering() {
+  const cl = D.clustering;
+
+  // Elbow
+  mkChart('c-elbow', {
+    type: 'line',
+    data: { labels: cl.elbow.map(d=>d.k), datasets: [{
+      label: 'Inertia', data: cl.elbow.map(d=>d.inertia),
+      borderColor: C.setosa, backgroundColor: C.setosa+'22',
+      borderWidth: 2.5, pointRadius: 5, fill: true, tension: 0.3,
+    }]},
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { title: { display: true, text: 'K', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } },
+                y: { grid: { color: C.grid }, ticks: { color: C.text }, title: { display: true, text: 'WCSS', color: C.text } } }
+    }
+  });
+
+  // Silhouette
+  mkChart('c-sil', {
+    type: 'line',
+    data: { labels: cl.silhouette.map(d=>d.k), datasets: [{
+      label: 'Silhouette', data: cl.silhouette.map(d=>d.score),
+      borderColor: C.versicolor, backgroundColor: C.versicolor+'22',
+      borderWidth: 2.5, pointRadius: 5, fill: true, tension: 0.3,
+    }]},
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { title: { display: true, text: 'K', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } },
+                y: { grid: { color: C.grid }, ticks: { color: C.text }, title: { display: true, text: 'Score', color: C.text }, min: 0.2, max: 0.65 } }
+    }
+  });
+
+  // KMeans scatter
+  const clColors = [C.cl0, C.cl1, C.cl2];
+  mkChart('c-cluster-km', {
+    type: 'scatter',
+    data: { datasets: [0,1,2].map(ci => ({
+      label: `Cluster ${ci}`,
+      data: cl.points.filter(p=>p.cluster===ci).map(p=>({x:p.x,y:p.y})),
+      backgroundColor: clColors[ci]+'bb', borderColor: clColors[ci], pointRadius: 5, borderWidth: 1,
+    }))},
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: C.text, font: { size: 10 }, boxWidth: 10 } } },
+      scales: { x: { title: { display: true, text: 'Petal Length', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } },
+                y: { title: { display: true, text: 'Petal Width', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } } }
+    }
+  });
+
+  // True labels
+  mkChart('c-cluster-true', {
+    type: 'scatter',
+    data: { datasets: ['setosa','versicolor','virginica'].map((sp, i) => ({
+      label: sp,
+      data: cl.points.filter(p=>p.species===sp).map(p=>({x:p.x,y:p.y})),
+      backgroundColor: [C.setosa,C.versicolor,C.virginica][i]+'bb',
+      borderColor: [C.setosa,C.versicolor,C.virginica][i],
+      pointRadius: 5, borderWidth: 1,
+    }))},
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: C.text, font: { size: 10 }, boxWidth: 10 } } },
+      scales: { x: { title: { display: true, text: 'Petal Length', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } },
+                y: { title: { display: true, text: 'Petal Width', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text } } }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+// CLASSIFICATION
+// ════════════════════════════════════════════════════
+function initClassification() {
+  // Model bars
+  const mb = document.getElementById('model-bars');
+  const mColors = [C.setosa, C.versicolor, C.virginica];
+  mb.innerHTML = D.classification.map((m, i) => `
+    <div class="model-row">
+      <div class="model-name">${m.model}</div>
+      <div class="model-bar-wrap"><div class="model-bar" style="width:${m.accuracy*100}%;background:${mColors[i]}"></div></div>
+      <div class="model-score">${(m.accuracy*100).toFixed(1)}%</div>
+    </div>
+  `).join('');
+
+  // Model comparison chart
+  mkChart('c-model-compare', {
+    type: 'radar',
+    data: {
+      labels: ['Accuracy', 'Precision', 'F1-score'],
+      datasets: D.classification.map((m, i) => ({
+        label: m.model,
+        data: [m.accuracy, m.precision, m.f1],
+        borderColor: mColors[i], backgroundColor: mColors[i] + '22',
+        borderWidth: 2, pointRadius: 4,
+      }))
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: C.text, font: { size: 10 }, boxWidth: 10 } } },
+      scales: { r: { min: 0.85, max: 1.0, grid: { color: C.grid }, ticks: { color: C.text, backdropColor: 'transparent', font: { size: 9 } }, pointLabels: { color: C.text } } }
+    }
+  });
+
+  // Feature importance bars
+  const fb = document.getElementById('feat-bars');
+  fb.innerHTML = D.feature_importance.map(fi => `
+    <div class="feat-row">
+      <div class="feat-name">${fi.feature.replace('_',' ')}</div>
+      <div class="feat-bar-wrap"><div class="feat-bar" style="width:${fi.importance*100}%"></div></div>
+      <div class="feat-pct">${(fi.importance*100).toFixed(1)}%</div>
+    </div>
+  `).join('');
+
+  // Decision surface (approximated via background shading + real points)
+  drawDecisionSurface();
+}
+
+function drawDecisionSurface() {
+  const canvas = document.getElementById('c-decision');
+  const ctx = canvas.getContext('2d');
+  // Use Chart.js scatter + background plugin
+  const pts = D.scatter;
+  const xMin = 0.8, xMax = 7.2, yMin = -0.1, yMax = 2.7;
+
+  mkChart('c-decision', {
+    type: 'scatter',
+    data: {
+      datasets: [
+        // Background zone approximation via large semi-transparent points
+        { label: '_setosa_bg', data: pts.filter(p=>p.species==='setosa').map(p=>({x:p.x,y:p.y})),
+          backgroundColor: C.setosa+'28', borderColor: 'transparent', pointRadius: 22, pointHoverRadius: 0 },
+        { label: '_versicolor_bg', data: pts.filter(p=>p.species==='versicolor').map(p=>({x:p.x,y:p.y})),
+          backgroundColor: C.versicolor+'28', borderColor: 'transparent', pointRadius: 22, pointHoverRadius: 0 },
+        { label: '_virginica_bg', data: pts.filter(p=>p.species==='virginica').map(p=>({x:p.x,y:p.y})),
+          backgroundColor: C.virginica+'28', borderColor: 'transparent', pointRadius: 22, pointHoverRadius: 0 },
+        // Real points on top
+        scatterDataset(pts, 'setosa', C.setosa),
+        scatterDataset(pts, 'versicolor', C.versicolor),
+        scatterDataset(pts, 'virginica', C.virginica),
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { filter: i => !i.text.startsWith('_'), color: C.text, font: { size: 10 }, boxWidth: 10 } } },
+      scales: {
+        x: { title: { display: true, text: 'Petal Length (cm)', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text }, min: xMin, max: xMax },
+        y: { title: { display: true, text: 'Petal Width (cm)', color: C.text }, grid: { color: C.grid }, ticks: { color: C.text }, min: yMin, max: yMax }
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+// TIME SERIES
+// ════════════════════════════════════════════════════
+function initTimeseries() {
+  const ts = D.ts;
+  const stride = 5; // thin daily data for rendering
+  const dDates = ts.dates.filter((_,i)=>i%stride===0);
+  const dClose = ts.closes.filter((_,i)=>i%stride===0);
+  const dMa7   = ts.ma7.filter((_,i)=>i%stride===0);
+  const dMa30  = ts.ma30.filter((_,i)=>i%stride===0);
+
+  // Price + MAs
+  mkChart('c-ts-price', {
+    type:'line',
+    data:{ labels: dDates, datasets:[
+      { label:'Close',    data:dClose, borderColor:C.setosa,      borderWidth:1,   pointRadius:0, tension:0.2 },
+      { label:'7-day MA', data:dMa7,  borderColor:C.virginica,    borderWidth:1.8, pointRadius:0, tension:0.3, borderDash:[] },
+      { label:'30-day MA',data:dMa30, borderColor:C.versicolor,   borderWidth:1.8, pointRadius:0, tension:0.3, borderDash:[4,3] },
+    ]},
+    options:{ maintainAspectRatio:false, plugins:{legend:{labels:{color:C.text,boxWidth:12}}},
+      scales:{ x:{ticks:{color:C.text,maxTicksLimit:10},grid:{color:C.grid}},
+               y:{ticks:{color:C.text},grid:{color:C.grid}} }}
+  });
+
+  // Trend (weekly)
+  mkChart('c-ts-trend', {
+    type:'line',
+    data:{ labels:ts.wkDates, datasets:[
+      { label:'Trend', data:ts.trend, borderColor:C.versicolor, borderWidth:2, pointRadius:0, tension:0.4 }
+    ]},
+    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:C.text,maxTicksLimit:8},grid:{color:C.grid}},
+               y:{ticks:{color:C.text},grid:{color:C.grid}} }}
+  });
+
+  // Seasonal
+  mkChart('c-ts-seasonal', {
+    type:'line',
+    data:{ labels:ts.wkDates, datasets:[
+      { label:'Seasonal', data:ts.seas, borderColor:C.virginica, borderWidth:1.5, pointRadius:0, tension:0.3 }
+    ]},
+    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:C.text,maxTicksLimit:8},grid:{color:C.grid}},
+               y:{ticks:{color:C.text},grid:{color:C.grid}} }}
+  });
+
+  // Residual
+  mkChart('c-ts-resid', {
+    type:'line',
+    data:{ labels:ts.wkDates, datasets:[
+      { label:'Residual', data:ts.resid, borderColor:C.text, borderWidth:1, pointRadius:0, tension:0.2 }
+    ]},
+    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:C.text,maxTicksLimit:8},grid:{color:C.grid}},
+               y:{ticks:{color:C.text},grid:{color:C.grid}} }}
+  });
+
+  // Returns histogram (40-bin approximation)
+  const bins = 40, minR = -8, maxR = 8, step = (maxR-minR)/bins;
+  const retLabels = [], retData = [];
+  for (let i=0;i<bins;i++) {
+    const lo = minR+i*step, hi = lo+step;
+    retLabels.push(lo.toFixed(1));
+    retData.push(ts.returns.filter(v=>v!=null&&v>=lo&&v<hi).length);
+  }
+  mkChart('c-ts-returns', {
+    type:'bar',
+    data:{ labels:retLabels, datasets:[{ label:'Count', data:retData,
+      backgroundColor:C.virginica+'99', borderColor:C.virginica, borderWidth:0 }]},
+    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:{color:C.text,maxTicksLimit:10},grid:{color:C.grid}},
+               y:{ticks:{color:C.text},grid:{color:C.grid}} }}
+  });
+}
+
+// ════════════════════════════════════════════════════
+// NLP SENTIMENT
+// ════════════════════════════════════════════════════
+function initNLP() {
+  const nlp = D.nlp;
+
+  // Update KPI counts
+  document.getElementById('nlp-pos-count').textContent = nlp.counts.positive;
+  document.getElementById('nlp-neg-count').textContent = nlp.counts.negative;
+  document.getElementById('nlp-neu-count').textContent = nlp.counts.neutral;
+
+  // Donut
+  mkChart('c-nlp-donut', {
+    type:'doughnut',
+    data:{ labels:['positive','negative','neutral'],
+      datasets:[{ data:[nlp.counts.positive, nlp.counts.negative, nlp.counts.neutral],
+        backgroundColor:[C.setosa+'bb',C.versicolor+'bb',C.virginica+'bb'],
+        borderColor:[C.setosa,C.versicolor,C.virginica], borderWidth:1.5, hoverOffset:6 }]},
+    options:{ cutout:'62%', maintainAspectRatio:false,
+      plugins:{ legend:{ position:'right', labels:{ color:C.text, font:{family:"'DM Mono',monospace",size:11}, boxWidth:12 } } }}
+  });
+
+  // Word frequency grouped bar
+  const topN = 6;
+  const posTop = nlp.posWords.slice(0,topN);
+  const negTop = nlp.negWords.slice(0,topN);
+  mkChart('c-nlp-words', {
+    type:'bar',
+    data:{ labels: posTop.map(w=>w.word).concat(negTop.map(w=>w.word)),
+      datasets:[
+        { label:'Positive', data: posTop.map(w=>w.count).concat(Array(topN).fill(0)),
+          backgroundColor:C.setosa+'99', borderColor:C.setosa, borderWidth:1 },
+        { label:'Negative', data: Array(topN).fill(0).concat(negTop.map(w=>w.count)),
+          backgroundColor:C.versicolor+'99', borderColor:C.versicolor, borderWidth:1 },
+      ]},
+    options:{ maintainAspectRatio:false, plugins:{legend:{labels:{color:C.text,boxWidth:12}}},
+      scales:{ x:{stacked:false,ticks:{color:C.text},grid:{color:C.grid}},
+               y:{ticks:{color:C.text},grid:{color:C.grid}} }}
+  });
+
+  // Polarity histogram
+  const binLabels = nlp.polBins.map(b=>b.toFixed(1));
+  mkChart('c-nlp-polarity', {
+    type:'bar',
+    data:{ labels:binLabels, datasets:[
+      { label:'positive', data:nlp.polPos, backgroundColor:C.setosa+'88', borderColor:C.setosa, borderWidth:0 },
+      { label:'negative', data:nlp.polNeg, backgroundColor:C.versicolor+'88', borderColor:C.versicolor, borderWidth:0 },
+      { label:'neutral',  data:nlp.polNeu, backgroundColor:C.virginica+'88', borderColor:C.virginica, borderWidth:0 },
+    ]},
+    options:{ maintainAspectRatio:false, barPercentage:1, categoryPercentage:1,
+      plugins:{legend:{labels:{color:C.text,boxWidth:12}}},
+      scales:{ x:{ticks:{color:C.text,maxTicksLimit:8},grid:{color:C.grid}},
+               y:{ticks:{color:C.text},grid:{color:C.grid}} }}
+  });
+
+  // Subjectivity by label (box-style using scatter)
+  const subData = [];
+  const subColors = {positive:C.setosa, negative:C.versicolor, neutral:C.virginica};
+  Object.entries(nlp.subByLabel).forEach(([label, vals], li) => {
+    vals.forEach((v,i) => subData.push({ x:li + (Math.random()-0.5)*0.3, y:v, label }));
+  });
+  mkChart('c-nlp-subjectivity', {
+    type:'scatter',
+    data:{ datasets:[
+      { label:'positive', data:nlp.subByLabel.positive.map((v,i)=>({x:0+(Math.random()-0.5)*0.3,y:v})),
+        backgroundColor:C.setosa+'aa', pointRadius:5 },
+      { label:'negative', data:nlp.subByLabel.negative.map((v,i)=>({x:1+(Math.random()-0.5)*0.3,y:v})),
+        backgroundColor:C.versicolor+'aa', pointRadius:5 },
+      { label:'neutral',  data:nlp.subByLabel.neutral.map((v,i)=>({x:2+(Math.random()-0.5)*0.3,y:v})),
+        backgroundColor:C.virginica+'aa', pointRadius:5 },
+    ]},
+    options:{ maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:C.text,boxWidth:12}}},
+      scales:{
+        x:{ ticks:{ color:C.text, callback:(_,i)=>['positive','negative','neutral'][i]||'', stepSize:1 }, min:-0.6, max:2.6, grid:{color:C.grid} },
+        y:{ min:0.3, max:0.7, ticks:{color:C.text}, grid:{color:C.grid}, title:{display:true,text:'Subjectivity',color:C.text} }
+      }}
+  });
+}
+
+// Live sentiment analyser (pure JS TextBlob-style lexicon)
+const POS_WORDS = new Set(['good','great','excellent','amazing','fantastic','wonderful','love','best','perfect','recommend','outstanding','brilliant','happy','pleased','satisfied','awesome','superb','quality','helpful','fast']);
+const NEG_WORDS = new Set(['bad','terrible','awful','horrible','worst','hate','disappoint','broken','waste','poor','defective','useless','slow','expensive','frustrat','annoying','damage','return','refund','broke']);
+function analyseText() {
+  const text = document.getElementById('nlp-live-input').value.trim();
+  if (!text) return;
+  const words = text.toLowerCase().replace(/[^a-z\s]/g,'').split(/\s+/);
+  let pol = 0;
+  const matched = [];
+  words.forEach(w => {
+    if (POS_WORDS.has(w)) { pol += 0.25; matched.push('+' + w); }
+    else if ([...NEG_WORDS].some(neg => w.includes(neg))) { pol -= 0.25; matched.push('−' + w); }
+  });
+  pol = Math.max(-1, Math.min(1, pol));
+  const label = pol > 0.05 ? 'POSITIVE' : pol < -0.05 ? 'NEGATIVE' : 'NEUTRAL';
+  const color = pol > 0.05 ? 'var(--accent1)' : pol < -0.05 ? 'var(--accent2)' : 'var(--accent3)';
+  const el = document.getElementById('nlp-live-result');
+  el.innerHTML = `<span style="color:${color};font-size:1.2rem;font-weight:600">${label}</span>
+    &nbsp;&nbsp;<span style="color:var(--muted)">polarity: <span style="color:${color}">${pol.toFixed(3)}</span></span>
+    ${matched.length ? `<br><span style="color:var(--muted);font-size:0.72rem">signals: ${matched.join(', ')}</span>` : ''}`;
+}
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
+charts['init-overview'] = true;
+initOverview();
+</script>
+</body>
+</html>
