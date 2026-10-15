@@ -201,6 +201,12 @@ def load_house() -> pd.DataFrame:
     p = _path("4) house Prediction Data Set.csv") 
     if p:
         df = pd.read_csv(p)
+        if df.shape[1] == 1:
+            # Boston Housing format: whitespace-separated, no header row
+            cols = ["CRIM","ZN","INDUS","CHAS","NOX","RM","AGE","DIS",
+                    "RAD","TAX","PTRATIO","B","LSTAT","MEDV"]
+            df = pd.read_csv(p, sep=r"\s+", header=None, names=cols)
+            df["price"] = df["MEDV"] * 1000   # MEDV is in $1000s
     else:
         np.random.seed(7)
         n = 500
@@ -346,6 +352,8 @@ print(f"  GridSearchCV best CV F1  : {GS_BEST_SCORE:.4f}")
 
 # --- Regression (house) ---
 _house_num = ["size_sqft","bedrooms","bathrooms","age_years","dist_downtown_km"]
+if "MEDV" in DF_HOUSE.columns:   # Boston Housing features
+    _house_num = ["RM","LSTAT","PTRATIO","CRIM","DIS","NOX","TAX","AGE"]
 _house_num = [c for c in _house_num if c in DF_HOUSE.columns]
 if _house_num and "price" in DF_HOUSE.columns:
     X_h = DF_HOUSE[_house_num].fillna(DF_HOUSE[_house_num].median())
@@ -449,7 +457,7 @@ def tab_cleaning():
         return dash_table.DataTable(
             id=id_, data=df_.to_dict("records"),
             columns=[{"name":c,"id":c} for c in df_.columns],
-            style_header=dict(**tbl_style, color=COLORS["accent1"],
+            style_header=dict(tbl_style, color=COLORS["accent1"],
                               borderBottom=f"1px solid {COLORS['border']}"),
             style_data=dict(**tbl_style, border="none"),
             style_table=dict(overflowX="auto"),
@@ -543,7 +551,7 @@ def tab_eda():
             dash_table.DataTable(
                 data=stats.to_dict("records"),
                 columns=[{"name":c,"id":c} for c in stats.columns],
-                style_header=dict(**tbl_style, color=COLORS["accent1"],
+                style_header=dict(tbl_style, color=COLORS["accent1"],
                                   borderBottom=f"1px solid {COLORS['border']}"),
                 style_data=dict(**tbl_style, border="none"),
                 style_table=dict(overflowX="auto"),
