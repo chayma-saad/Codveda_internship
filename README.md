@@ -2,9 +2,12 @@
 
 A production-grade, multi-dataset analytics dashboard built with **Plotly Dash**.
 
+[![Full Dash App](https://img.shields.io/badge/Full%20Dash%20App-Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://codveda-internship-cwdk.onrender.com)
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-chayma--saad.github.io-7de8c8?style=for-the-badge&logo=githubpages&logoColor=black)](https://chayma-saad.github.io/Codveda_internship/iris_dashboard.html)
 
-> 🌐 **See it live:** https://chayma-saad.github.io/Codveda_internship/iris_dashboard.html
+> 🚀 **Full interactive Dash app (all 8 tasks, 4 datasets):** https://codveda-internship-cwdk.onrender.com — free tier, the first visit can take ~1 min while the server wakes up.
+>
+> 📊 **Static Iris dashboard:** https://chayma-saad.github.io/Codveda_internship/iris_dashboard.html
 
 ## Datasets Covered
 
