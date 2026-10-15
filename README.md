@@ -2,6 +2,10 @@
 
 A production-grade, multi-dataset analytics dashboard built with **Plotly Dash**.
 
+[![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-chayma--saad.github.io-7de8c8?style=for-the-badge&logo=githubpages&logoColor=black)](https://chayma-saad.github.io/Codveda_internship/iris_dashboard.html)
+
+> 🌐 **See it live:** https://chayma-saad.github.io/Codveda_internship/iris_dashboard.html
+
 ## Datasets Covered
 
 | Dataset | Source | Tasks |
@@ -18,7 +22,8 @@ A production-grade, multi-dataset analytics dashboard built with **Plotly Dash**
 
 ```bash
 # 1. Clone / download the project folder
-cd codveda-dashboard
+git clone https://github.com/chayma-saad/Codveda_internship.git
+cd Codveda_internship
 
 # 2. Create virtual environment (recommended)
 python -m venv venv
